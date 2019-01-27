@@ -4,11 +4,14 @@
 #include "json.hpp"
 #include "ukf.h"
 #include "tools.h"
+#include <fstream>
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using std::string;
 using std::vector;
+
+using namespace std;
 
 // for convenience
 using json = nlohmann::json;
@@ -39,6 +42,108 @@ int main() {
   Tools tools;
   vector<VectorXd> estimations;
   vector<VectorXd> ground_truth;
+
+// chris: 
+  // for all the lines:
+  //   read one line data from file obj_pose-laser-radar-synthetic-input.txt
+  //   pack the message according to the type L or R
+  //   pack the gt and push into ground_truth vector
+  //   call ukf.ProcessMeasurement
+  //   push the ukf.x_ into the estimation vector
+  //   calculate the RMSE
+  string sensor_measurment;
+  ifstream DataFile("../data/obj_pose-laser-radar-synthetic-input.txt");
+  //ifstream DataFile("../data/radar.txt");
+  //ifstream DataFile("../data/laser.txt");
+
+  if (DataFile.is_open())
+  {
+    while ( getline(DataFile,sensor_measurment) )
+    {
+      MeasurementPackage meas_package;
+      istringstream iss(sensor_measurment);
+    	long long timestamp;
+
+    	//reads the sensor type from the current line
+    	string sensor_type;
+    	iss >> sensor_type;
+
+      //pack the message according to the sensor type
+      //LASER: sensor_type px py timestamp
+      //RADAR: sensor_type ro theta ro_dot timestamp
+      if (sensor_type.compare("L") == 0) 
+      {
+        meas_package.sensor_type_ = MeasurementPackage::LASER;
+        meas_package.raw_measurements_ = VectorXd(2);
+        float px;
+        float py;
+        iss >> px;
+        iss >> py;
+        meas_package.raw_measurements_ << px, py;
+        iss >> timestamp;
+        meas_package.timestamp_ = timestamp;
+      } 
+      else if (sensor_type.compare("R") == 0) 
+      {
+        meas_package.sensor_type_ = MeasurementPackage::RADAR;
+        meas_package.raw_measurements_ = VectorXd(3);
+        float ro;
+        float theta;
+        float ro_dot;
+        iss >> ro;
+        iss >> theta;
+        iss >> ro_dot;
+        meas_package.raw_measurements_ << ro,theta, ro_dot;
+        iss >> timestamp;
+        meas_package.timestamp_ = timestamp;
+      }
+
+      //call kalman filter
+      ukf.ProcessMeasurement(meas_package);
+
+      //get the ground truth
+      float x_gt;
+      float y_gt;
+      float vx_gt;
+      float vy_gt;
+      iss >> x_gt;
+      iss >> y_gt;
+      iss >> vx_gt;
+      iss >> vy_gt;
+      VectorXd gt_values(4);
+      gt_values(0) = x_gt;
+      gt_values(1) = y_gt; 
+      gt_values(2) = vx_gt;
+      gt_values(3) = vy_gt;
+      ground_truth.push_back(gt_values); 
+
+      //Push the current estimated x,y positon from the Kalman filter's state vector
+      VectorXd estimate(4);
+
+      double p_x = ukf.x_(0);
+      double p_y = ukf.x_(1);
+      double v1  = ukf.x_(2) * cos(ukf.x_(3));
+      double v2  = ukf.x_(2) * sin(ukf.x_(3));
+
+      estimate(0) = p_x;
+      estimate(1) = p_y;
+      estimate(2) = v1;
+      estimate(3) = v2;
+      
+      estimations.push_back(estimate); 
+ 
+      VectorXd RMSE = tools.CalculateRMSE(estimations, ground_truth);
+
+      //Expect RMSE: 0.09 0.10 0.40 0.30
+      // laser RMSE: 
+      // radar RMSE: 
+      //  both RMSE: 
+      //  EKF  RMSE: 0.10 0.09 0.45 0.47
+      //cout << "RMSE: " << RMSE << endl;
+
+    }
+    DataFile.close();
+  }
 
   h.onMessage([&ukf,&tools,&estimations,&ground_truth]
               (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
