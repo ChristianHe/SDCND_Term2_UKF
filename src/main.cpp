@@ -52,9 +52,9 @@ int main() {
   //   push the ukf.x_ into the estimation vector
   //   calculate the RMSE
   string sensor_measurment;
-  //ifstream DataFile("../data/obj_pose-laser-radar-synthetic-input.txt");
+  ifstream DataFile("../data/obj_pose-laser-radar-synthetic-input.txt");
   //ifstream DataFile("../data/radar.txt");
-  ifstream DataFile("../data/laser.txt");
+  //ifstream DataFile("../data/laser.txt");
 
   if (DataFile.is_open())
   {
@@ -135,9 +135,9 @@ int main() {
       VectorXd RMSE = tools.CalculateRMSE(estimations, ground_truth);
 
       //Expect RMSE: 0.09 0.10 0.40 0.30
-      // laser RMSE: 
-      // radar RMSE: 
-      //  both RMSE: 
+      // laser RMSE: 0.09 0.10 0.55 0.28
+      // radar RMSE: 0.15 0.25 0.22 0.27
+      //  both RMSE: 0.06 0.08 0.33 0.21
       //  EKF  RMSE: 0.10 0.09 0.45 0.47
       cout << "RMSE: " << RMSE << endl;
 

@@ -73,6 +73,14 @@ class UKF {
                                 Eigen::VectorXd* x_pred, 
                                 Eigen::MatrixXd* P_pred);
 
+  /**
+   * Predict radar measurement
+   * @param z_out  predicted radar measurement
+   * @param S_out  predicted radar measurement covariance matrix
+   */
+  void PredictRadarMeasurement(Eigen::VectorXd* z_out, 
+                               Eigen::MatrixXd* S_out);
+
   // initially set to false, set to true in first call of ProcessMeasurement
   bool is_initialized_;
 
@@ -135,6 +143,15 @@ class UKF {
 
   // Radar measurement noise matrix
   Eigen::MatrixXd R_radar_;
+
+  // Radar predicted measurement vector
+  Eigen::VectorXd z_pred_;
+
+  // Radar measurement covariance matrix
+  Eigen::MatrixXd S_radar_;
+
+  // Radar cross correlation matrix
+  Eigen::MatrixXd Tc_;
 
 };
 
