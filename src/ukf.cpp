@@ -135,11 +135,11 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       }
 
       /* 1.2, Initialize the P_, H_laser, R_laser, R_radar_. */
-      P_ << 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0;
+      P_ << 100, 0, 0, 0, 0,
+            0, 100, 0, 0, 0,
+            0, 0, 100, 0, 0,
+            0, 0, 0, 100, 0,
+            0, 0, 0, 0, 100;
 
       H_laser_ << 1, 0, 0, 0, 0,
                   0, 1, 0, 0, 0;
@@ -167,7 +167,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     {
       UpdateRadar(meas_package);
     } 
-    else 
+    else if(meas_package.sensor_type_ == MeasurementPackage::LASER)
     {
       UpdateLidar(meas_package);
     }
@@ -184,6 +184,14 @@ void UKF::Prediction(double delta_t) {
    * and the state covariance matrix.
    */
   //cout << "delta_t: " << delta_t << endl;
+
+  /*
+   * 2.1, generate the sigma point
+   * 2.2, generate the aug sigma point
+   * 2.3, predict the aug sigma point
+   * 2.4, predict the mean and covariance
+  */
+
 }
 
 void UKF::UpdateLidar(MeasurementPackage meas_package) {
@@ -194,11 +202,24 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
    * You can also calculate the lidar NIS, if desired.
    */
 
-  //prepare the z_
+  /* prepare the z_ */
   float px = meas_package.raw_measurements_(0);
   float py = meas_package.raw_measurements_(1);
   Eigen::VectorXd z_ = VectorXd(2, 1);
   z_ << px, py;
+
+  /* update the state by using Kalman Filter equations */
+  VectorXd y_ = z_ - H_laser_ * x_;
+  MatrixXd H_laser_t_ = H_laser_.transpose();
+  MatrixXd S_ = H_laser_ * P_ * H_laser_t_ + R_laser_;
+  MatrixXd Si_ = S_.inverse();
+  MatrixXd K_ =  P_ * H_laser_t_ * Si_;
+  MatrixXd I;
+  I = MatrixXd::Identity(5, 5);
+
+  // new state
+  x_ = x_ + (K_ * y_);
+  P_ = (I - K_ * H_laser_) * P_;
 
   //cout << "Lidar px py: " << px << py << endl;
 }
