@@ -52,9 +52,9 @@ int main() {
   //   push the ukf.x_ into the estimation vector
   //   calculate the RMSE
   string sensor_measurment;
-  ifstream DataFile("../data/obj_pose-laser-radar-synthetic-input.txt");
+  //ifstream DataFile("../data/obj_pose-laser-radar-synthetic-input.txt");
   //ifstream DataFile("../data/radar.txt");
-  //ifstream DataFile("../data/laser.txt");
+  ifstream DataFile("../data/laser.txt");
 
   if (DataFile.is_open())
   {
@@ -139,7 +139,7 @@ int main() {
       // radar RMSE: 
       //  both RMSE: 
       //  EKF  RMSE: 0.10 0.09 0.45 0.47
-      //cout << "RMSE: " << RMSE << endl;
+      cout << "RMSE: " << RMSE << endl;
 
     }
     DataFile.close();

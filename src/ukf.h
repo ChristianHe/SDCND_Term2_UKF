@@ -41,6 +41,37 @@ class UKF {
    */
   void UpdateRadar(MeasurementPackage meas_package);
 
+  /**
+   * Generate sigma points
+   * @param Xsig_out sigma points generated which will be n_x * (2 * n_x + 1)
+   */
+  void GenerateSigmaPoints(Eigen::MatrixXd* Xsig_out); 
+  
+  /**
+   * Generate sigma points
+   * @param Xsig_out augment sigma points generated which will be n_a_ * (2 * n_a_ + 1)
+   */
+  void AugmentedSigmaPoints(Eigen::MatrixXd* Xsig_out);
+
+  /**
+   * Predict sigma points
+   * @param Xsig_aug augment sigma points
+   * @param delta_t 
+   * @param Xsig_out predicted sigma points generated which will be n_x_ * (2 * n_a_ + 1)
+   */
+  void SigmaPointPrediction(Eigen::MatrixXd Xsig_aug, 
+                            double delta_t, 
+                            Eigen::MatrixXd* Xsig_out);
+
+  /**
+   * Predict sigma points
+   * @param Xsig_pred predicted sigma points
+   * @param x_pred predicted state vector x
+   * @param P_pred predicted state covariance P
+   */
+  void PredictMeanAndCovariance(Eigen::MatrixXd  Xsig_pred,
+                                Eigen::VectorXd* x_pred, 
+                                Eigen::MatrixXd* P_pred);
 
   // initially set to false, set to true in first call of ProcessMeasurement
   bool is_initialized_;
