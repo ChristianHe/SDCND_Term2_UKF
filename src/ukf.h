@@ -1,6 +1,6 @@
 #ifndef UKF_H
 #define UKF_H
-
+#include <fstream>
 #include "Eigen/Dense"
 #include "measurement_package.h"
 
@@ -152,6 +152,9 @@ class UKF {
 
   // Radar cross correlation matrix
   Eigen::MatrixXd Tc_;
+
+  // NIS log file
+  std::ofstream LogFile;
 
 };
 

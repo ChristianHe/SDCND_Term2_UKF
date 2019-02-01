@@ -91,6 +91,8 @@ UKF::UKF()
   // Radar cross correlation matrix
   Tc_ = MatrixXd(n_x_, 3);
 
+  LogFile.open("../NIS/NIS_radar.txt");
+
 }
 
 UKF::~UKF() {}
@@ -309,6 +311,11 @@ void UKF::UpdateRadar(MeasurementPackage meas_package)
   
   x_ = x_ + K_ * z_diff;
   P_ = P_ - K_ * S_radar_ * K_.transpose();
+
+  // Calculate radar NIS 
+  double NIS_ = z_diff.transpose() * S_radar_i_ * z_diff;
+  LogFile << NIS_ << endl;
+  
 }
 
 void UKF::GenerateSigmaPoints(MatrixXd *Xsig_out)
