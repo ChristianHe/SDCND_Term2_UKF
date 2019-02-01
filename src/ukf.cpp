@@ -118,6 +118,12 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package)
     if (is_initialized_ == false)
     {
       /* 1.1, Initialize the x_ with lidar or radar data. */
+      /*****************************************************
+       * Initial value of x_ and P is quite important, because 
+       * when the x_ is equal with the ground truth, the Kalman filter
+       * is the best estimator, refer to Invariants and Derivatation  
+       * chapter of the Kalman filter wiki for more details. 
+       *****************************************************/
       if (meas_package.sensor_type_ == MeasurementPackage::RADAR)
       {
         /**
@@ -129,10 +135,17 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package)
         float ro_dot = meas_package.raw_measurements_(2);
         float px = ro * cos(theta); //x is verical
         float py = ro * sin(theta); //y is horizon
-        float v = ro_dot;
+        float v = ro_dot; // NOTE: ro_dot is different from v. But if initial with the radar data, the rmse will be better.
         float yaw = 0;
         float yaw_rate = 0;
         x_ << px, py, v, yaw, yaw_rate;
+
+        P_ << 1, 0, 0, 0, 0,
+              0, 1, 0, 0, 0,
+              0, 0, 1, 0, 0,
+              0, 0, 0, 10, 0,
+              0, 0, 0, 0, 10;
+
         //cout << "initial px py: " << px << py << endl;
       }
       else if (meas_package.sensor_type_ == MeasurementPackage::LASER)
@@ -144,24 +157,26 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package)
         float yaw = 0;
         float yaw_rate = 0;
         x_ << px, py, v, yaw, yaw_rate;
+
+        /* laser have high accuracy of px and py, therefore covariance of px and py 
+           is small (equal with measurement covariance?), while v yaw and yaw_rate have high intial covariance. */
+        P_ << 1, 0, 0, 0, 0,
+              0, 1, 0, 0, 0,
+              0, 0, 10, 0, 0,
+              0, 0, 0, 10, 0,
+              0, 0, 0, 0, 10;
       }
 
-      /* 1.2, Initialize the P_, H_laser, R_laser, R_radar_. */
-      P_ << 5, 0, 0, 0, 0,
-          0, 5, 0, 0, 0,
-          0, 0, 5, 0, 0,
-          0, 0, 0, 5, 0,
-          0, 0, 0, 0, 5;
-
+      /* 1.2, Initialize the H_laser, R_laser, R_radar_. */
       H_laser_ << 1, 0, 0, 0, 0,
-          0, 1, 0, 0, 0;
+                  0, 1, 0, 0, 0;
 
       R_laser_ << std_laspx_ * std_laspx_, 0,
-          0, std_laspy_ * std_laspy_;
+                  0, std_laspy_ * std_laspy_;
 
       R_radar_ << std_radr_ * std_radr_, 0, 0,
-          0, std_radphi_ * std_radphi_, 0,
-          0, 0, std_radrd_ * std_radrd_;
+                  0, std_radphi_ * std_radphi_, 0,
+                  0, 0, std_radrd_ * std_radrd_;
 
       time_us_ = meas_package.timestamp_;
 

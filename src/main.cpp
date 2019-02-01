@@ -137,7 +137,7 @@ int main() {
       //Expect RMSE: 0.09 0.10 0.40 0.30
       // laser RMSE: 0.09 0.10 0.55 0.28
       // radar RMSE: 0.15 0.25 0.22 0.27
-      //  both RMSE: 0.06 0.08 0.33 0.21
+      //  both RMSE: 0.06 0.08 0.28 0.21, init with radar data RMSE: 0.06 0.08 0.15 0.22
       //  EKF  RMSE: 0.10 0.09 0.45 0.47
       cout << "RMSE: " << RMSE << endl;
 
